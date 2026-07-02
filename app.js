@@ -36,12 +36,29 @@ let currentProfile = null;   // { username, isAdmin }
 let allMilks = [];           // [{id, name, brand, imageUrl, reviews:[...]}]
 let activeMilkId = null;
 let activeReviewIndex = 0;
+let pendingAction = null;    // fn to run automatically after a successful sign-in
 
 /* ---------------- helpers ---------------- */
 function $(sel){ return document.querySelector(sel); }
 function $all(sel){ return document.querySelectorAll(sel); }
 function show(el){ el.classList.remove("hidden"); }
 function hide(el){ el.classList.add("hidden"); }
+
+function openAuthModal(message){
+  $("#auth-modal-note").textContent = message ||
+    "Sign in to add milks, leave reviews, or manage the archive — browsing and search are open to everyone.";
+  show($("#auth-modal"));
+}
+function closeAuthModal(){
+  hide($("#auth-modal"));
+  $("#login-error").textContent = "";
+  $("#signup-error").textContent = "";
+}
+$("#btn-signin").addEventListener("click", ()=> openAuthModal());
+$("#btn-close-auth").addEventListener("click", ()=>{ closeAuthModal(); pendingAction = null; });
+$("#auth-modal").addEventListener("click", (e)=>{
+  if(e.target.id === "auth-modal"){ closeAuthModal(); pendingAction = null; }
+});
 
 function toast(msg){
   const t = $("#toast");
@@ -79,8 +96,17 @@ function fmtDate(d){
 
 /* ---------------- navigation ---------------- */
 function navigate(view){
+  if(view === "add-milk" && !currentUser){
+    pendingAction = ()=> navigate("add-milk");
+    openAuthModal("Sign in to file a new milk.");
+    return;
+  }
+  if(view === "admin" && !currentUser){
+    pendingAction = ()=> navigate("admin");
+    openAuthModal("Sign in as the Archive Master to manage accounts.");
+    return;
+  }
   $all(".content-view").forEach(hide);
-  $all(".ledger-sidebar .tag-label")[0]; // no-op, sidebar always visible
   if(view === "home"){ show($("#view-empty")); }
   if(view === "add-milk"){ show($("#view-add-milk")); }
   if(view === "admin" && currentProfile?.isAdmin){ loadAdminPanel(); show($("#view-admin")); }
@@ -136,6 +162,7 @@ $("#form-signup").addEventListener("submit", async (e)=>{
       createdAt: serverTimestamp()
     });
     toast("Account filed. Welcome to the archive!");
+    $("#form-signup").reset();
   }catch(err){
     errEl.textContent = friendlyAuthError(err);
   }
@@ -182,19 +209,29 @@ onAuthStateChanged(auth, async (user)=>{
     }
     currentProfile = snap.data();
     $("#current-username").textContent = currentProfile.username;
+    $all(".logged-in-only").forEach(show);
+    $all(".guest-only").forEach(hide);
     if(currentProfile.isAdmin){ $all(".admin-only").forEach(show); }
     else { $all(".admin-only").forEach(hide); }
 
-    hide($("#screen-auth"));
-    show($("#screen-app"));
-    await loadMilks();
-    navigate("home");
+    closeAuthModal();
+    if(pendingAction){
+      const fn = pendingAction;
+      pendingAction = null;
+      fn();
+    }
   } else {
     currentProfile = null;
-    show($("#screen-auth"));
-    hide($("#screen-app"));
+    $all(".logged-in-only").forEach(hide);
+    $all(".guest-only").forEach(show);
+    $all(".admin-only").forEach(hide);
   }
+  if(activeMilkId) renderMilkDetail(); // refresh delete-review visibility etc.
 });
+
+/* ---------------- INIT: archive is browsable with no sign-in ---------------- */
+loadMilks();
+navigate("home");
 
 /* ---------------- MILKS: load + list + search ---------------- */
 async function loadMilks(){
@@ -363,7 +400,7 @@ function renderMilkDetail(){
 
         <div class="filed-stamp">FILED ★</div>
         <p class="review-byline">Inspected by ${escapeHtml(rev.username)} on ${fmtDate(rev.date)}
-          ${(currentProfile?.isAdmin || rev.userId === currentUser.uid) ? ` · <button id="btn-delete-review" style="background:none;border:none;color:var(--red);text-decoration:underline;cursor:pointer;font-family:inherit;">delete this review</button>` : ""}
+          ${(currentProfile?.isAdmin || (currentUser && rev.userId === currentUser.uid)) ? ` · <button id="btn-delete-review" style="background:none;border:none;color:var(--red);text-decoration:underline;cursor:pointer;font-family:inherit;">delete this review</button>` : ""}
         </p>
       </div>
 
@@ -397,6 +434,11 @@ rangeIds.forEach(id=>{
 
 let addReviewMilkId = null;
 function openAddReview(milkId, milkName){
+  if(!currentUser){
+    pendingAction = ()=> openAddReview(milkId, milkName);
+    openAuthModal("Sign in to leave a review.");
+    return;
+  }
   addReviewMilkId = milkId;
   $("#review-milk-name").textContent = milkName;
   $("#form-add-review").reset();
