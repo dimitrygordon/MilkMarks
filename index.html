@@ -4,17 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Milk Marks &mdash; Dairy Inspection Archive</title>
+<link rel="icon" type="image/jpeg" href="MilkMarksFavicon.jpg">
+<link rel="apple-touch-icon" href="MilkMarksFavicon.jpg">
+<meta name="theme-color" content="#5c4430">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Special+Elite&family=Courier+Prime:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- ============ AUTH SCREEN ============ -->
-<div id="screen-auth" class="screen">
+<!-- ============ SIGN IN MODAL ============ -->
+<div id="auth-modal" class="modal-overlay hidden">
   <div class="auth-crate">
     <div class="stamp-logo" aria-hidden="true">
-      <svg viewBox="0 0 260 260" width="150" height="150">
+      <svg viewBox="0 0 260 260" width="110" height="110">
         <defs>
           <path id="circlePathTop" d="M 30,130 A 100,100 0 1 1 230,130" />
           <path id="circlePathBot" d="M 230,132 A 100,100 0 1 1 30,132" />
@@ -34,11 +37,11 @@
         <text class="stamp-curve-text small"><textPath href="#circlePathBot" startOffset="50%" text-anchor="middle">DAIRY INSPECTION ARCHIVE</textPath></text>
       </svg>
     </div>
-    <h1 class="site-title">Milk Marks</h1>
-    <p class="site-tag">Rating Milk. Honoring the Herd.</p>
 
     <div class="ledger-sheet auth-sheet">
+      <button class="modal-close" id="btn-close-auth" aria-label="Close">&times;</button>
       <div class="pin"></div>
+      <p class="modal-note" id="auth-modal-note">Sign in to add milks, leave reviews, or manage the archive — browsing and search are open to everyone.</p>
       <div class="tab-row">
         <button class="tab-btn active" data-tab="login">Sign In</button>
         <button class="tab-btn" data-tab="signup">New Ledger Account</button>
@@ -70,7 +73,7 @@
 </div>
 
 <!-- ============ MAIN APP ============ -->
-<div id="screen-app" class="screen hidden">
+<div id="screen-app" class="screen">
 
   <header class="masthead">
     <div class="masthead-inner">
@@ -84,9 +87,10 @@
         <span class="brand-sub">Dairy Inspection Archive</span>
       </div>
       <nav class="masthead-links right">
-        <span class="welcome-text">Filed by <strong id="current-username">—</strong></span>
+        <span class="welcome-text logged-in-only hidden">Filed by <strong id="current-username">—</strong></span>
         <button class="link-btn admin-only hidden" data-nav="admin">🗂 Archive Master</button>
-        <button class="link-btn" id="btn-logout">Sign Out</button>
+        <button class="link-btn logged-in-only hidden" id="btn-logout">Sign Out</button>
+        <button class="link-btn guest-only" id="btn-signin">🔑 Sign In</button>
       </nav>
     </div>
   </header>
@@ -108,8 +112,8 @@
       <section id="view-empty" class="content-view">
         <div class="ledger-sheet welcome-sheet">
           <div class="pin"></div>
-          <h2>Welcome to the Archive</h2>
-          <p class="prose">Pick a milk from the ledger on the left to read its inspection sheet, use the search box to hunt for a brand, or file a brand new milk for review yourself.</p>
+          <h2>The Milk Archive</h2>
+          <p class="prose">Search the ledger on the left for a brand, or browse the full list. Every inspection sheet is free to read — no account needed. Want to file a new milk or leave your own review? That just takes a quick, free sign-in.</p>
         </div>
       </section>
 
@@ -237,6 +241,6 @@
 
 <div id="toast" class="toast hidden"></div>
 
-<script type="module" src="js/app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
