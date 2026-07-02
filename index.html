@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milk Marks &mdash; Dairy Inspection Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Special+Elite&family=Courier+Prime:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="screen-auth" class="screen">
+  <div class="auth-crate">
+    <div class="stamp-logo" aria-hidden="true">
+      <svg viewBox="0 0 260 260" width="150" height="150">
+        <defs>
+          <path id="circlePathTop" d="M 30,130 A 100,100 0 1 1 230,130" />
+          <path id="circlePathBot" d="M 230,132 A 100,100 0 1 1 30,132" />
+        </defs>
+        <circle cx="130" cy="130" r="118" class="stamp-ring-outer"/>
+        <circle cx="130" cy="130" r="104" class="stamp-ring-inner"/>
+        <circle cx="130" cy="130" r="96" fill="#dfe9d8" opacity="0.55"/>
+        <path d="M20,175 Q90,145 130,150 Q175,145 240,178 L240,240 L20,240 Z" fill="#87a468" opacity="0.85"/>
+        <path d="M40,190 Q95,168 130,172 Q170,168 220,192 L220,220 L40,220 Z" fill="#6f8f52"/>
+        <ellipse cx="95" cy="150" rx="20" ry="13" fill="#7a5233"/>
+        <ellipse cx="80" cy="147" rx="9" ry="6" fill="#7a5233"/>
+        <ellipse cx="150" cy="156" rx="16" ry="10" fill="#5a3d26"/>
+        <circle cx="185" cy="132" r="6" fill="#c94f3d"/>
+        <circle cx="192" cy="138" r="5" fill="#e8e2c9"/>
+        <circle cx="60" cy="120" r="4" fill="#9db8c9"/>
+        <text class="stamp-curve-text"><textPath href="#circlePathTop" startOffset="50%" text-anchor="middle">MILK MARKS</textPath></text>
+        <text class="stamp-curve-text small"><textPath href="#circlePathBot" startOffset="50%" text-anchor="middle">DAIRY INSPECTION ARCHIVE</textPath></text>
+      </svg>
+    </div>
+    <h1 class="site-title">Milk Marks</h1>
+    <p class="site-tag">Rating Milk. Honoring the Herd.</p>
+
+    <div class="ledger-sheet auth-sheet">
+      <div class="pin"></div>
+      <div class="tab-row">
+        <button class="tab-btn active" data-tab="login">Sign In</button>
+        <button class="tab-btn" data-tab="signup">New Ledger Account</button>
+      </div>
+
+      <form id="form-login" class="auth-form">
+        <label>Username
+          <input type="text" id="login-username" autocomplete="username" required>
+        </label>
+        <label>Password
+          <input type="password" id="login-password" autocomplete="current-password" required>
+        </label>
+        <p class="form-error" id="login-error"></p>
+        <button type="submit" class="btn-stamp">Enter the Archive</button>
+      </form>
+
+      <form id="form-signup" class="auth-form hidden">
+        <label>Choose a Username
+          <input type="text" id="signup-username" autocomplete="username" required>
+        </label>
+        <label>Choose a Password
+          <input type="password" id="signup-password" autocomplete="new-password" required>
+        </label>
+        <p class="form-error" id="signup-error"></p>
+        <button type="submit" class="btn-stamp">File My Account</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="screen-app" class="screen hidden">
+
+  <header class="masthead">
+    <div class="masthead-inner">
+      <nav class="masthead-links left">
+        <button class="link-btn" data-nav="home">🍶 Milks</button>
+        <button class="link-btn" data-nav="add-milk">🏚 Add a Milk</button>
+      </nav>
+      <div class="masthead-brand" data-nav="home">
+        <div class="mini-stamp">🐄</div>
+        <span class="brand-script">Milk Marks</span>
+        <span class="brand-sub">Dairy Inspection Archive</span>
+      </div>
+      <nav class="masthead-links right">
+        <span class="welcome-text">Filed by <strong id="current-username">—</strong></span>
+        <button class="link-btn admin-only hidden" data-nav="admin">🗂 Archive Master</button>
+        <button class="link-btn" id="btn-logout">Sign Out</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- SIDEBAR LEDGER -->
+    <aside class="ledger-sidebar" id="view-home">
+      <button class="tag-label" data-nav="home">&larr; All Milk Reviews</button>
+      <h2 class="ledger-heading">Review Ledger</h2>
+      <input type="text" id="search-input" class="search-box" placeholder="Search milks, brands, sources…">
+      <div id="milk-list" class="milk-list"><!-- populated by JS --></div>
+      <div class="crate-note">Support real farms.<br>Drink thoughtfully.</div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- HOME / EMPTY STATE -->
+      <section id="view-empty" class="content-view">
+        <div class="ledger-sheet welcome-sheet">
+          <div class="pin"></div>
+          <h2>Welcome to the Archive</h2>
+          <p class="prose">Pick a milk from the ledger on the left to read its inspection sheet, use the search box to hunt for a brand, or file a brand new milk for review yourself.</p>
+        </div>
+      </section>
+
+      <!-- MILK DETAIL -->
+      <section id="view-milk" class="content-view hidden"><!-- populated by JS --></section>
+
+      <!-- ADD MILK -->
+      <section id="view-add-milk" class="content-view hidden">
+        <div class="ledger-sheet">
+          <div class="pin"></div>
+          <h2>File a New Milk</h2>
+          <form id="form-add-milk" class="stack-form">
+            <label>Milk Name (e.g. "Homestead Creamery 2% Milk") *
+              <input type="text" id="milk-name" required>
+            </label>
+            <label>Brand / Creamery *
+              <input type="text" id="milk-brand" required>
+            </label>
+            <label>Photo URL (optional)
+              <input type="url" id="milk-image" placeholder="https://...">
+            </label>
+            <p class="form-error" id="add-milk-error"></p>
+            <button type="submit" class="btn-stamp">File This Milk</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ADD REVIEW -->
+      <section id="view-add-review" class="content-view hidden">
+        <div class="ledger-sheet">
+          <div class="pin"></div>
+          <h2>Inspect: <span id="review-milk-name"></span></h2>
+          <form id="form-add-review" class="stack-form">
+            <div class="grid-2">
+              <label>Date
+                <input type="date" id="rev-date" required>
+              </label>
+              <label>Overall Letter Grade
+                <select id="rev-grade" required>
+                  <option>A+</option><option>A</option><option>A-</option>
+                  <option>B+</option><option selected>B</option><option>B-</option>
+                  <option>C+</option><option>C</option><option>C-</option>
+                  <option>D+</option><option>D</option><option>D-</option>
+                  <option>F</option>
+                </select>
+              </label>
+              <label>Stars (0-5)
+                <input type="number" id="rev-stars" min="0" max="5" step="1" value="3" required>
+              </label>
+              <label>Price ($)
+                <input type="number" id="rev-price" min="0" step="0.01" placeholder="7.53">
+              </label>
+              <label>Size
+                <input type="text" id="rev-size" placeholder="~1 pint">
+              </label>
+              <label>Source / Store
+                <input type="text" id="rev-source" placeholder="Whole Foods Market (Washington, DC)">
+              </label>
+            </div>
+
+            <fieldset class="rating-field">
+              <legend>Flavor <span id="out-flavor">9</span>/10</legend>
+              <input type="range" id="rev-flavor" min="0" max="10" value="9">
+              <textarea id="rev-flavor-note" placeholder="Has a very nice earthy grassy flavor..."></textarea>
+            </fieldset>
+            <fieldset class="rating-field">
+              <legend>Creaminess <span id="out-creaminess">6</span>/10</legend>
+              <input type="range" id="rev-creaminess" min="0" max="10" value="6">
+              <textarea id="rev-creaminess-note" placeholder="Lighter body due to 2% fat..."></textarea>
+            </fieldset>
+            <fieldset class="rating-field">
+              <legend>Packaging <span id="out-packaging">10</span>/10</legend>
+              <input type="range" id="rev-packaging" min="0" max="10" value="10">
+              <textarea id="rev-packaging-note" placeholder="Gorgeous glass bottle..."></textarea>
+            </fieldset>
+            <fieldset class="rating-field">
+              <legend>Cost <span id="out-cost">1</span>/10</legend>
+              <input type="range" id="rev-cost" min="0" max="10" value="1">
+              <textarea id="rev-cost-note" placeholder="Pricey. Effective price improves with..."></textarea>
+            </fieldset>
+
+            <label>Pros (one per line)
+              <textarea id="rev-pros" placeholder="A2A2&#10;Medium sized farm&#10;Exchangeable glass bottles"></textarea>
+            </label>
+            <label>Cons (one per line, prefix with ~ for "neutral")
+              <textarea id="rev-cons" placeholder="~2% (not Whole)&#10;All Natural (not Organic)&#10;Homogenized&#10;Pasteurized (not Raw)"></textarea>
+            </label>
+
+            <div class="grid-2">
+              <label>Farm Notes
+                <textarea id="rev-farm-notes" placeholder="Located in Virginia. Cows appear pasture based..."></textarea>
+              </label>
+              <label>Cow Profile (breed / diet / mood)
+                <textarea id="rev-cow-profile" placeholder="Breed: Holstein&#10;Diet: Pasture + Hay&#10;Mood: Calm"></textarea>
+              </label>
+            </div>
+            <label>Final Word
+              <textarea id="rev-final-word" placeholder="A solid daily drinker with excellent packaging..."></textarea>
+            </label>
+
+            <p class="form-error" id="add-review-error"></p>
+            <button type="submit" class="btn-stamp">Stamp &amp; File This Review</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ADMIN PANEL -->
+      <section id="view-admin" class="content-view hidden">
+        <div class="ledger-sheet">
+          <div class="pin"></div>
+          <h2>Archive Master</h2>
+          <p class="prose">Manage accounts filed in the archive. Selecting a user shows every review they've left. Deleting a user removes their profile and their reviews from the ledger.</p>
+          <div id="admin-user-list" class="admin-user-list"></div>
+        </div>
+        <div class="ledger-sheet hidden" id="admin-user-detail">
+          <div class="pin"></div>
+          <h2 id="admin-detail-name"></h2>
+          <div id="admin-detail-reviews"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
